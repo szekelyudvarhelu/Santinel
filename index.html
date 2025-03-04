@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendszerinformációk Megjelenítése</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #333; }
+        button { margin-top: 20px; }
+        #smartData { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        #closeButton { position: absolute; top: 10px; right: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rendszerinformációk Megjelenítése</h1>
+        <button id="showDataButton">Adatok Megjelenítése</button>
+        <div id="smartData">
+            <span id="closeButton">&times;</span>
+            <pre id="dataContent"></pre>
+        </div>
+    </div>
+    <script>
+        document.getElementById('showDataButton').addEventListener('click', function() {
+            fetch('http://localhost:3000/system-data')
+                .then(response => response.json())
+                .then(data => {
+                    const dataContent = document.getElementById('dataContent');
+                    dataContent.innerHTML = ''; // Töröljük az előző adatokat
+
+                    const formatData = (key, value) => `${key}: ${value}\n`;
+
+                    dataContent.innerHTML += formatData('CPU Gyártó', data.cpu.manufacturer);
+                    dataContent.innerHTML += formatData('CPU Márka', data.cpu.brand);
+                    dataContent.innerHTML += formatData('CPU Sebesség', data.cpu.speed + ' GHz');
+                    dataContent.innerHTML += formatData('CPU Magok', data.cpu.cores);
+                    dataContent.innerHTML += formatData('Memória Összesen', (data.mem.total / 1073741824).toFixed(2) + ' GB');
+                    dataContent.innerHTML += formatData('Szabad Memória', (data.mem.free / 1073741824).toFixed(2) + ' GB');
+                    dataContent.innerHTML += formatData('Operációs Rendszer', data.osInfo.platform);
+                    dataContent.innerHTML += formatData('Disztró', data.osInfo.distro);
+                    dataContent.innerHTML += formatData('Kiadás', data.osInfo.release);
+                    data.diskLayout.forEach((disk, index) => {
+                        dataContent.innerHTML += formatData(`Lemez ${index + 1} Eszköz`, disk.device);
+                        dataContent.innerHTML += formatData(`Lemez ${index + 1} Típus`, disk.type);
+                        dataContent.innerHTML += formatData(`Lemez ${index + 1} Név`, disk.name);
+                        dataContent.innerHTML += formatData(`Lemez ${index + 1} Gyártó`, disk.vendor);
+                        dataContent.innerHTML += formatData(`Lemez ${index + 1} Méret`, (disk.size / 1073741824).toFixed(2) + ' GB');
+                    });
+
+                    document.getElementById('smartData').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Hiba történt:', error);
+                });
+        });
+
+        document.getElementById('closeButton').addEventListener('click', function() {
+            document.getElementById('smartData').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
